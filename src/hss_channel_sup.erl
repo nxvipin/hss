@@ -4,9 +4,9 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 14 Sep 2015 by Vipin Nair <swvist@gmail.com>
+%%% Created : 13 Sep 2015 by Vipin Nair <swvist@gmail.com>
 %%%-------------------------------------------------------------------
--module(hss_sup).
+-module(hss_channel_sup).
 
 -behaviour(supervisor).
 
@@ -51,26 +51,18 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
 
-    SupFlags = #{strategy => one_for_one,
+    SupFlags = #{strategy => simple_one_for_one,
                  intensity => 1,
                  period => 5},
 
-    Acceptor = #{id => hss_acceptor,
-                 start => {hss_acceptor, start_link, []},
-                 restart => permanent,
-                 shutdown => 5000,
-                 type => worker,
-                 modules => [hss_acceptor]},
+    Channel = #{id => hss_channel,
+               start => {ssh_channel, start_link, []},
+               restart => temporary,
+               shutdown => 5000,
+               type => worker},
 
-    ChannelSup = #{id => hss_channel_sup,
-                   start => {hss_channel_sup, start_link, []},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => supervisor,
-                   modules => [hss_channel_sup, hss_channel]},
+    {ok, {SupFlags, [Channel]}}.
 
-    {ok, {SupFlags, [Acceptor, ChannelSup]}}.
-
-%%%===============================================fac====================
+%%%===================================================================
 %%% Internal functions
 %%%===================================================================
