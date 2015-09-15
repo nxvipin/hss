@@ -62,6 +62,13 @@ init([]) ->
                  type => worker,
                  modules => [hss_acceptor]},
 
+    Connector = #{id => hss_connection,
+                 start => {hss_connection, start_link, []},
+                 restart => permanent,
+                 shutdown => 5000,
+                 type => worker,
+                 modules => [hss_connection]},
+
     ChannelSup = #{id => hss_channel_sup,
                    start => {hss_channel_sup, start_link, []},
                    restart => permanent,
@@ -69,7 +76,7 @@ init([]) ->
                    type => supervisor,
                    modules => [hss_channel_sup, hss_channel]},
 
-    {ok, {SupFlags, [Acceptor, ChannelSup]}}.
+    {ok, {SupFlags, [Acceptor, Connector, ChannelSup]}}.
 
 %%%===============================================fac====================
 %%% Internal functions
