@@ -19,11 +19,12 @@ hss:run("localhost", 22, "username", "password", "ls /").
 ```
 
 
-### Feature Roadmap
+### Feature Roadmap (In no specific order)
 
 * Support passwordless & key based logins
 * ~~Reuse existing connections~~
 * Write script output to file and/or publish it to subscribers
+* Ability to specify various SSH timeouts
 
 
 ### Todo
@@ -34,3 +35,4 @@ hss:run("localhost", 22, "username", "password", "ls /").
 * Request acceptor pool?
 * Kill idle connections (after some timeout)
 * Invalidate connection cache on connection close
+

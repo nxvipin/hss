@@ -17,6 +17,8 @@
          terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
+-define(CONNECTION_TIMEOUT, 2000).
+-define(NEGOTIATION_TIMEOUT, 2000).
 
 
 -spec new(host(), ssh_port(), username(), password()) -> {ok, connection_ref()}.
@@ -33,16 +35,12 @@ init([]) ->
 
 
 handle_call({connect, Host, Port, Username, Password}, _From, State) ->
-    {Conn, State_} = case cache_get(Host, Username, State) of
-                         undefined ->
-                             {ok, ConnRef} = ssh:connect(Host, Port,
-                                                         [{user, Username},
-                                                          {password, Password}]),
-                             {ConnRef, cache_add(Host, Username, ConnRef, State)};
-                         ConnRef ->
-                             {ConnRef, State}
-                     end,
-    {reply, {ok, Conn}, State_};
+    case create_connection(Host, Port, Username, Password, State) of
+        {ok, ConnRef, State_} ->
+            {reply, {ok, ConnRef}, State_};
+        {error, Reason} ->
+            {reply, {error, Reason}, State}
+    end;
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -77,3 +75,28 @@ cache_get(Host, Username, Cache) ->
 cache_add(Host, Username, ConnRef, Cache) ->
     %% TODO: Should have only unique entries. Sets?
     Cache ++ [{{Host, Username}, ConnRef}].
+
+-spec create_connection(host(),
+                        ssh_port(),
+                        username(),
+                        password(),
+                        connection_cache()) ->
+                               {ok, connection_ref(), connection_cache()} |
+                               {error, string()}.
+
+create_connection(Host, Port, Username, Password, State) ->
+    case cache_get(Host, Username, State) of
+        undefined ->
+            case ssh:connect(Host, Port,
+                             [{user, Username},
+                              {password, Password},
+                              {connect_timeout, ?CONNECTION_TIMEOUT}],
+                             ?NEGOTIATION_TIMEOUT) of
+                {ok, ConnRef} ->
+                    {ok, ConnRef, cache_add(Host, Username, ConnRef, State)};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        ConnRef ->
+            {ok, ConnRef, State}
+    end.
