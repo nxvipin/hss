@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, run/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -20,10 +20,7 @@ init([]) ->
 handle_call({exec, Machine, Credential, Command}, _From, _State) ->
     io:format("Exec: ~p~n", [Command]),
 
-    {Host, Port} = Machine,
-    {Username, Password} = Credential,
-
-    Reply = case hss_connection:new(Host, Port, Username, Password) of
+    Reply = case hss_connection:new(Machine, Credential) of
                 {ok, Conn} ->
                     case ssh_connection:session_channel(Conn, 10000) of
                         {ok, ChannelId} ->
@@ -61,3 +58,10 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, _State, _Extra) ->
     {ok, _State}.
+
+run(Target, Script) ->
+    Machines = hss_target:get_machines(Target),
+    Credential = hss_target:get_credential(Target),
+
+    [gen_server:call(hss_acceptor, {exec, Machine, Credential, Script})
+     || Machine <- Machines].

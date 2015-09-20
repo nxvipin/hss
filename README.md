@@ -1,6 +1,9 @@
-# HSS: SSH on Steroids!
+# HSS: SSH on Steroids! (WIP)
 
-SSH multiplexer as an OTP application. Work in Progress.
+HSS is a SSH multiplexer available as an OTP application. It lets you run
+scripts on targets. `Targets` have a list of one or more (unique) Machines that
+share a common Credential. When a Script is run on a target, it gets run on
+every machine associated with that Target.
 
 ##### Quickstart
 Compile the code and load all dependencies in path and drop into shell: `rebar3 shell`
@@ -9,15 +12,17 @@ In the erlang shell:
 
 ```erlang
 hss:start().
-hss:run("<HOST>", <PORT>, "<USERNAME>", "<PASSWORD>", "<COMMAND>").
-```
 
-Example:
-```erlang
-hss:start().
-hss:run("localhost", 22, "username", "password", "ls /").
-```
+Machine1 = hss_machine:new("machine1", 22).
+Machine2 = hss_machine:new("machine2, 22).
 
+Cred = hss_credential:new("username", "password").
+
+Target = hss_target:new([Machine1, Machine2], Cred).
+
+hss:run(Target, "ls /home").
+
+```
 
 ### Feature Roadmap (In no specific order)
 
@@ -35,4 +40,4 @@ hss:run("localhost", 22, "username", "password", "ls /").
 * Request acceptor pool?
 * Kill idle connections (after some timeout)
 * Invalidate connection cache on connection close
-
+* Run starts are serialized, but can be run in parallel.
