@@ -41,6 +41,9 @@ handle_ssh_msg(Msg, State) ->
 terminate(Reason, State) ->
     io:format("TERMINATE: ~p : ~p~n", [Reason, State]).
 
+code_change(_OldVsn, _State, _Extra) ->
+    {ok, _State}.
+
 exec(Ref, Cmd) ->
     exec(Ref, Cmd, infinity).
 

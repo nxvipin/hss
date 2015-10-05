@@ -3,8 +3,11 @@
 -behaviour(gen_server).
 
 -type connection_identifier() :: {host(), username()}.
--type connection_ref() :: pid() | undefined.
--type connection_cache() :: list({connection_identifier(), connection_ref()}).
+-type connection_cache() :: list({connection_identifier(), connection_pid()}).
+-type connection_result() :: {ok, connection_pid()}
+                           | {error, term()}.
+-type cache_get_result() :: connection_pid()
+                          | undefined.
 
 -define(SERVER, ?MODULE).
 -define(CONNECTION_TIMEOUT, 2000).
@@ -17,7 +20,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--spec new(#machine{}, #credential{}) -> {ok, connection_ref()}.
+-spec new(#machine{}, #credential{}) -> connection_result().
 new(Machine, Credential) ->
     gen_server:call(?SERVER, {connect, Machine, Credential}).
 
@@ -52,14 +55,14 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 
--spec cache_get(host(), username(), connection_cache()) -> connection_ref().
+-spec cache_get(host(), username(), connection_cache()) -> cache_get_result().
 cache_get(Host, Username, Cache) ->
     proplists:get_value({Host, Username}, Cache).
 
 
 -spec cache_add(host(),
                 username(),
-                connection_ref(),
+                connection_pid(),
                 connection_cache()) -> connection_cache().
 cache_add(Host, Username, ConnRef, Cache) ->
     %% TODO: Should have only unique entries. Sets?
@@ -68,7 +71,7 @@ cache_add(Host, Username, ConnRef, Cache) ->
 -spec create_connection(#machine{},
                         #credential{},
                         connection_cache()) ->
-                               {ok, connection_ref(), connection_cache()} |
+                               {ok, connection_pid(), connection_cache()} |
                                {error, string()}.
 
 create_connection(Machine, Credential, State) ->

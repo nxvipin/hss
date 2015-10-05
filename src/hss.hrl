@@ -12,3 +12,8 @@
 
 -record(target, {machines = sets:new() :: sets:set(#machine{}),
                  credential :: #credential{}}).
+
+-type connection_pid() :: pid().
+-type channel_pid() :: pid().
+-type channel_id() :: integer().
+-type script() :: string().

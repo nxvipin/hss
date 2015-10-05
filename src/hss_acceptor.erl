@@ -1,17 +1,43 @@
 -module(hss_acceptor).
-
 -behaviour(gen_server).
+-include("hss.hrl").
+-define(SERVER, ?MODULE).
 
-%% API
--export([start_link/0, run/2]).
-
-%% gen_server callbacks
+-export([start_link/0, run/2, run/3]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
--define(SERVER, ?MODULE).
+
+-export_type([run_result/0, run_results/0]).
+
+-type run_results() :: list(run_result()).
+-type run_result() :: {ok, connection_pid(), channel_id(), channel_pid()}
+                    | {connection_error, term()}
+                    | {channel_error, term()}.
+
+%% -----------------------------------------------------------------------------
+%% Public API
+%% -----------------------------------------------------------------------------
+
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+
+-spec run(#target{}, script()) -> run_results().
+run(Target, Script) ->
+    Machines = hss_target:get_machines(Target),
+    Credential = hss_target:get_credential(Target),
+    [run(Machine, Credential, Script) || Machine <- Machines].
+
+
+-spec run(#machine{}, #credential{}, script()) -> run_result().
+run(Machine, Credential, Script) ->
+    gen_server:call(hss_acceptor, {exec, Machine, Credential, Script}).
+
+
+%% -----------------------------------------------------------------------------
+%% Gen server callback
+%% -----------------------------------------------------------------------------
 
 
 init([]) ->
@@ -24,14 +50,13 @@ handle_call({exec, Machine, Credential, Command}, _From, _State) ->
                 {ok, Conn} ->
                     case ssh_connection:session_channel(Conn, 10000) of
                         {ok, ChannelId} ->
+                            io:format("Created channel"),
                             {ok, Channel} =
-                                supervisor:start_child(hss_channel_sup,
-                                                       [Conn,
-                                                        ChannelId,
-                                                        hss_channel,
-                                                        [{cm, Conn},
-                                                         {channel_id, ChannelId}]
-                                                       ]),
+                                supervisor:start_child(
+                                  hss_channel_sup,
+                                  [Conn, ChannelId, hss_channel,
+                                   [{cm, Conn}, {channel_id, ChannelId}]
+                                  ]),
                             hss_channel:exec(Channel, Command),
                             {ok, Conn, ChannelId, Channel};
                         {error, ChannelReason} ->
@@ -58,10 +83,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, _State, _Extra) ->
     {ok, _State}.
-
-run(Target, Script) ->
-    Machines = hss_target:get_machines(Target),
-    Credential = hss_target:get_credential(Target),
-
-    [gen_server:call(hss_acceptor, {exec, Machine, Credential, Script})
-     || Machine <- Machines].
