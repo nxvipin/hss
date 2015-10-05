@@ -32,7 +32,8 @@ run(Target, Script) ->
 
 -spec run(#machine{}, #credential{}, script()) -> run_result().
 run(Machine, Credential, Script) ->
-    gen_server:call(hss_acceptor, {exec, Machine, Credential, Script}).
+    gen_server:call(hss_acceptor, {exec, Machine, Credential, Script},
+                    hss_utils:default_timeout()).
 
 
 %% -----------------------------------------------------------------------------

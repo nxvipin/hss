@@ -10,8 +10,7 @@
                           | undefined.
 
 -define(SERVER, ?MODULE).
--define(CONNECTION_TIMEOUT, 2000).
--define(NEGOTIATION_TIMEOUT, 2000).
+
 
 %% API
 -export([start_link/0, new/2]).
@@ -22,7 +21,8 @@
 
 -spec new(#machine{}, #credential{}) -> connection_result().
 new(Machine, Credential) ->
-    gen_server:call(?SERVER, {connect, Machine, Credential}).
+    gen_server:call(?SERVER, {connect, Machine, Credential},
+                    hss_utils:default_ssh_timeout()).
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -82,11 +82,12 @@ create_connection(Machine, Credential, State) ->
 
     case cache_get(Host, Username, State) of
         undefined ->
-            case ssh:connect(Host, Port,
-                             [{user, Username},
-                              {password, Password},
-                              {connect_timeout, ?CONNECTION_TIMEOUT}],
-                             ?NEGOTIATION_TIMEOUT) of
+            case ssh:connect(
+                   Host, Port,
+                   [{user, Username},
+                    {password, Password},
+                    {connect_timeout, hss_utils:default_conn_timeout()}],
+                   hss_utils:default_neg_timeout()) of
                 {ok, ConnRef} ->
                     {ok, ConnRef, cache_add(Host, Username, ConnRef, State)};
                 {error, Reason} ->

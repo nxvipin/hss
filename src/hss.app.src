@@ -8,6 +8,7 @@
    ,stdlib
    ,ssh
    ]}
- ,{env,[]}
+ ,{env,[{default_ssh_connection_timeout, 30000}
+       ,{default_ssh_negotiation_timeout, 30000}]}
  ,{modules, []}
  ]}.
