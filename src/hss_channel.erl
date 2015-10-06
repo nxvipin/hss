@@ -12,14 +12,14 @@ init(Options) ->
     {ok, #channel_state{connection=Connection,
                         channel_id=ChannelId}}.
 
-handle_call(Msg, From, State) ->
+handle_call(Msg, _From, State) ->
     io:format("CALL: ~p~n", [Msg]),
     {reply, Msg, State}.
 
 handle_cast({exec, Cmd, Timeout}, State) ->
     ssh_connection:exec(State#channel_state.connection,
                         State#channel_state.channel_id,
-                        Cmd, 5000),
+                        Cmd, Timeout),
     io:format("CAST: ~p~n", [Cmd]),
     {noreply, State};
 
