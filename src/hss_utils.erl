@@ -1,6 +1,6 @@
 -module(hss_utils).
 -export([default_timeout/0, default_ssh_timeout/0, default_conn_timeout/0,
-         default_neg_timeout/0]).
+         default_neg_timeout/0, accept_hosts/0]).
 
 
 default_timeout() ->
@@ -17,3 +17,7 @@ default_conn_timeout() ->
 
 default_neg_timeout() ->
     application:get_env(hss, default_ssh_negotiation_timeout, 10000).
+
+
+accept_hosts() ->
+    application:get_env(hss, silently_accept_hosts, true).
