@@ -1,6 +1,11 @@
 -module(hss_connection).
 -include("hss.hrl").
 -behaviour(gen_server).
+-define(SERVER, ?MODULE).
+
+-export([start_link/0, new/2]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+         terminate/2, code_change/3]).
 
 -type connection_identifier() :: {host(), username()}.
 -type connection_cache() :: list({connection_identifier(), connection_pid()}).
@@ -9,15 +14,11 @@
 -type cache_get_result() :: connection_pid()
                           | undefined.
 
--define(SERVER, ?MODULE).
 
+%% -----------------------------------------------------------------------------
+%% Public API
+%% -----------------------------------------------------------------------------
 
-%% API
--export([start_link/0, new/2]).
-
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
 
 -spec new(#machine{}, #credential{}) -> connection_result().
 new(Machine, Credential) ->
@@ -26,6 +27,12 @@ new(Machine, Credential) ->
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+
+%% -----------------------------------------------------------------------------
+%% Gen server callback
+%% -----------------------------------------------------------------------------
+
 
 init([]) ->
     {ok, []}.
@@ -55,6 +62,11 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 
+%% -----------------------------------------------------------------------------
+%% Internal API
+%% -----------------------------------------------------------------------------
+
+
 -spec cache_get(host(), username(), connection_cache()) -> cache_get_result().
 cache_get(Host, Username, Cache) ->
     proplists:get_value({Host, Username}, Cache).
@@ -68,12 +80,10 @@ cache_add(Host, Username, ConnRef, Cache) ->
     %% TODO: Should have only unique entries. Sets?
     Cache ++ [{{Host, Username}, ConnRef}].
 
+
 -spec create_connection(#machine{},
                         #credential{},
-                        connection_cache()) ->
-                               {ok, connection_pid(), connection_cache()} |
-                               {error, string()}.
-
+                        connection_cache()) -> connection_result().
 create_connection(Machine, Credential, State) ->
     Host = hss_machine:get_host(Machine),
     Port = hss_machine:get_port(Machine),

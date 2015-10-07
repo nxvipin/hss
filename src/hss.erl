@@ -1,5 +1,5 @@
 -module(hss).
--compile(export_all).
+-export([start/0, run/2, run/3]).
 -include("hss.hrl").
 
 
