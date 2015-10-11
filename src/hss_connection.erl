@@ -7,10 +7,11 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--type connection_identifier() :: {host(), username()}.
--type connection_cache() :: list({connection_identifier(), connection_pid()}).
+
 -type connection_result() :: {ok, connection_pid()}
                            | {error, term()}.
+-type cache_add_result() :: yes
+                          | no.
 -type cache_get_result() :: connection_pid()
                           | undefined.
 
@@ -38,9 +39,9 @@ init([]) ->
     {ok, []}.
 
 handle_call({connect, Machine, Credential}, _From, State) ->
-    case create_connection(Machine, Credential, State) of
-        {ok, ConnRef, State_} ->
-            {reply, {ok, ConnRef}, State_};
+    case create_connection(Machine, Credential) of
+        {ok, ConnRef} ->
+            {reply, {ok, ConnRef}, State};
         {error, Reason} ->
             {reply, {error, Reason}, State}
     end;
@@ -67,30 +68,28 @@ code_change(_OldVsn, State, _Extra) ->
 %% -----------------------------------------------------------------------------
 
 
--spec cache_get(host(), username(), connection_cache()) -> cache_get_result().
-cache_get(Host, Username, Cache) ->
-    proplists:get_value({Host, Username}, Cache).
+-spec cache_get(host(), username()) -> cache_get_result().
+cache_get(Host, Username) ->
+    global:whereis_name({conn, Host, Username}).
 
 
 -spec cache_add(host(),
                 username(),
-                connection_pid(),
-                connection_cache()) -> connection_cache().
-cache_add(Host, Username, ConnRef, Cache) ->
-    %% TODO: Should have only unique entries. Sets?
-    Cache ++ [{{Host, Username}, ConnRef}].
+                connection_pid()) -> cache_add_result().
+cache_add(Host, Username, ConnRef) ->
+    %% TODO: Handle registration failures.
+    global:register_name({conn, Host, Username}, ConnRef).
 
 
 -spec create_connection(#machine{},
-                        #credential{},
-                        connection_cache()) -> connection_result().
-create_connection(Machine, Credential, State) ->
+                        #credential{}) -> connection_result().
+create_connection(Machine, Credential) ->
     Host = hss_machine:get_host(Machine),
     Port = hss_machine:get_port(Machine),
     Username = hss_credential:get_username(Credential),
     Password = hss_credential:get_password(Credential),
 
-    case cache_get(Host, Username, State) of
+    case cache_get(Host, Username) of
         undefined ->
             case ssh:connect(
                    Host, Port,
@@ -100,10 +99,11 @@ create_connection(Machine, Credential, State) ->
                     {silently_accept_hosts, hss_utils:accept_hosts()}],
                    hss_utils:default_neg_timeout()) of
                 {ok, ConnRef} ->
-                    {ok, ConnRef, cache_add(Host, Username, ConnRef, State)};
+                    cache_add(Host, Username, ConnRef),
+                    {ok, ConnRef};
                 {error, Reason} ->
                     {error, Reason}
             end;
         ConnRef ->
-            {ok, ConnRef, State}
+            {ok, ConnRef}
     end.
