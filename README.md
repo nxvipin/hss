@@ -14,7 +14,7 @@ In the erlang shell:
 hss:start().
 
 Machine1 = hss_machine:new("machine1", 22).
-Machine2 = hss_machine:new("machine2, 22).
+Machine2 = hss_machine:new("machine2", 22).
 
 Cred = hss_credential:new("username", "password").
 
