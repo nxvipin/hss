@@ -96,7 +96,8 @@ create_connection(Machine, Credential) ->
                    [{user, Username},
                     {password, Password},
                     {connect_timeout, hss_utils:default_conn_timeout()},
-                    {silently_accept_hosts, hss_utils:accept_hosts()}],
+                    {silently_accept_hosts, hss_utils:accept_hosts()},
+                    {user_dir, hss_utils:configure_user_dir(Credential)}],
                    hss_utils:default_neg_timeout()) of
                 {ok, ConnRef} ->
                     cache_add(Host, Username, ConnRef),
