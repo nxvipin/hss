@@ -51,15 +51,17 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
 
-    SupFlags = #{strategy => simple_one_for_one,
-                 intensity => 1,
-                 period => 5},
+    SupFlags =
+        #{strategy => simple_one_for_one,
+          intensity => 1,
+          period => 5},
 
-    Channel = #{id => hss_channel,
-               start => {ssh_channel, start_link, []},
-               restart => temporary,
-               shutdown => 5000,
-               type => worker},
+    Channel =
+        #{id => hss_channel,
+          start => {ssh_channel, start_link, []},
+          restart => temporary,
+          shutdown => 5000,
+          type => worker},
 
     {ok, {SupFlags, [Channel]}}.
 

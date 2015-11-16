@@ -51,33 +51,33 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
 
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 1,
-                 period => 5},
+    SupFlags =
+        #{strategy => one_for_one,
+          intensity => 1,
+          period => 5},
 
-    Acceptor = #{id => hss_acceptor,
-                 start => {hss_acceptor, start_link, []},
-                 restart => permanent,
-                 shutdown => 5000,
-                 type => worker,
-                 modules => [hss_acceptor]},
+    Acceptor =
+        #{id => hss_acceptor,
+          start => {hss_acceptor, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [hss_acceptor]},
 
-    Connector = #{id => hss_connection,
-                 start => {hss_connection, start_link, []},
-                 restart => permanent,
-                 shutdown => 5000,
-                 type => worker,
-                 modules => [hss_connection]},
+    Connector =
+        #{id => hss_connection,
+          start => {hss_connection, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [hss_connection]},
 
-    ChannelSup = #{id => hss_channel_sup,
-                   start => {hss_channel_sup, start_link, []},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => supervisor,
-                   modules => [hss_channel_sup, hss_channel]},
+    TaskControllerSup =
+        #{id => hss_task_controller_sup,
+          start => {hss_task_controller_sup, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => supervisor,
+          modules => [hss_task_sup, hss_task]},
 
-    {ok, {SupFlags, [Acceptor, Connector, ChannelSup]}}.
-
-%%%===============================================fac====================
-%%% Internal functions
-%%%===================================================================
+    {ok, {SupFlags, [Acceptor, Connector, TaskControllerSup]}}.

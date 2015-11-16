@@ -1,15 +1,18 @@
 {application, hss,
- [{description, "An OTP application"}
- ,{vsn, "0.1.0"}
- ,{registered, []}
- ,{mod, {'hss_app', []}}
- ,{applications,
-   [kernel
-   ,stdlib
-   ,ssh
-   ]}
- ,{env,[{default_ssh_connection_timeout, 30000}
-       ,{default_ssh_negotiation_timeout, 30000}
-       ,{silently_accept_hosts, true}]}
- ,{modules, []}
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {'hss_app', []}},
+  {applications,
+   [kernel,
+    stdlib,
+    lager,
+    ssh
+   ]},
+  {env, [{default_ssh_connection_timeout, 30000},
+         {default_ssh_negotiation_timeout, 30000},
+         {silently_accept_hosts, true},
+         {hss_data_dir, default}
+        ]},
+  {modules, []}
  ]}.

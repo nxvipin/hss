@@ -1,6 +1,13 @@
 -module(hss_utils).
--export([default_timeout/0, default_ssh_timeout/0, default_conn_timeout/0,
-         default_neg_timeout/0, accept_hosts/0, configure_user_dir/1]).
+-export([default_timeout/0,
+         default_ssh_timeout/0,
+         default_conn_timeout/0,
+         default_neg_timeout/0,
+         accept_hosts/0,
+         configure_user_dir/1,
+         hss_data_directory/0,
+         uuid4/0,
+         uuid4str/0]).
 
 
 default_timeout() ->
@@ -30,3 +37,31 @@ configure_user_dir(_Credential) ->
     UserDir = "/tmp/hss",
     file:make_dir(UserDir),
     UserDir.
+
+
+hss_data_directory() ->
+    case application:get_env(hss, hss_data_directory, default) of
+        default ->
+            {ok, [[HomeDir]]} = init:get_argument(home),
+            DataDir = filename:join(HomeDir, ".hss"),
+            file:make_dir(DataDir),
+            DataDir;
+        DataDir ->
+            file:make_dir(DataDir),
+            DataDir
+    end.
+
+
+uuid4() ->
+    %% UUID4 implementation from gh/cloven/uuid4
+    %% Credit: felixgallo@gmail.com
+    RandomBytes = crypto:rand_bytes(16),
+    <<First:32, Second:16, Third:12, Fourth:2,
+      Fifth:12, Sixth:48, _UselessPadding:6, _Rest/binary>> = RandomBytes,
+    Formatter = "~8.16.0b-~4.16.0b-4~3.16.0b-~1.16.0b~3.16.0b-~12.16.0b",
+    list_to_binary(io_lib:format(Formatter, [First, Second, Third, Fourth+8,
+                                             Fifth, Sixth])).
+
+
+uuid4str() ->
+    binary:bin_to_list(uuid4()).

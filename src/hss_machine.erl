@@ -13,3 +13,6 @@ get_host(Machine) ->
 -spec get_port(#machine{}) -> ssh_port() |  undefined.
 get_port(Machine) ->
     Machine#machine.port.
+
+print(#machine{host=Host, port=Port}) ->
+    io_lib:format("~s:~p", [Host, Port]).

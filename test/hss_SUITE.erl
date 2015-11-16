@@ -65,4 +65,4 @@ basic_test(Config) ->
 
     Machine = hss_machine:new(Host, Port),
     Credential = hss_credential:new(?HSS_USER, ?HSS_PASSWORD),
-    {ok, _, _, _} = hss:run(Machine, Credential, ?SCRIPT).
+    {ok, _} = hss:run(Machine, Credential, ?SCRIPT).
