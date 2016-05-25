@@ -7,11 +7,11 @@ start() ->
     application:ensure_all_started(hss).
 
 
--spec run(#target{}, script()) -> {ok, task()}.
+-spec run(target(), script()) -> {ok, task()}.
 run(Target, Script) ->
     hss_acceptor:run(Target, Script).
 
 
--spec run(#machine{}, #credential{}, script()) -> {ok, task()}.
+-spec run(machine(), credential(), script()) -> {ok, task()}.
 run(Machine, Credential, Script) ->
     hss_acceptor:run(Machine, Credential, Script).
