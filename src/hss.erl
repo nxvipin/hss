@@ -7,7 +7,7 @@ start() ->
 
 -spec run(target(), script()) -> {ok, task()}.
 run(Target, Script) ->
-    hss_task_controller_sup:execute(Target, Script).
+    hss_sup:execute(Target, Script).
 
 -spec run(machine(), credential(), script()) -> {ok, task()}.
 run(Machine, Credential, Script) ->
