@@ -17,7 +17,7 @@ init([Task]) ->
                  period => 5},
 
     MachineManagerSup = #{id => hss_machine_manager_sup,
-                          start => {hss_machine_manager_sup, start_link, []},
+                          start => {hss_machine_manager_sup, start_link, [Task]},
                           restart => permanent,
                           shutdown => 5000,
                           type => supervisor,
@@ -31,10 +31,4 @@ init([Task]) ->
                    type => supervisor,
                    modules => [hss_channel_sup, hss_channel]},
 
-    TaskManager = #{id => hss_task_manager,
-                    start => {hss_task_manager, start_link, [Task]},
-                    restart => temporary,
-                    shutdown => 5000,
-                    type => worker},
-
-    {ok, {SupFlags, [MachineManagerSup, ChannelSup, TaskManager]}}.
+    {ok, {SupFlags, [MachineManagerSup, ChannelSup]}}.

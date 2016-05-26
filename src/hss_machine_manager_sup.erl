@@ -1,24 +1,31 @@
 -module(hss_machine_manager_sup).
+-include("hss.hrl").
 -behaviour(supervisor).
 -define(SERVER, ?MODULE).
 
--export([start_link/0]).
--export([init/1]).
+-export([start_link/1,
+         init/1]).
 
+start_link(Task) ->
+    supervisor:start_link(?MODULE, [Task]).
 
-start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+init([Task]) ->
 
-init([]) ->
-
-    SupFlags = #{strategy => simple_one_for_one,
+    SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    MachineManager = #{id => hss_task_sup,
-                       start => {hss_machine_manager, start_link, []},
-                       restart => temporary,
-                       shutdown => 5000,
-                       type => worker},
+    Machines = machine_spec(Task),
 
-    {ok, {SupFlags, [MachineManager]}}.
+    {ok, {SupFlags, Machines}}.
+
+
+machine_spec(#machine{}=Machine, #task{}=Task) ->
+    #{id => hss_task_sup,
+      start => {hss_machine_manager, start_link, [Machine, Task]},
+      restart => temporary,
+      shutdown => 5000,
+      type => worker}.
+
+machine_spec(#task{target=#target{machines=Machines}}=Task) ->
+    [machine_spec(Machine, Task) || Machine <- Machines].
