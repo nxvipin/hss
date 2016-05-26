@@ -56,14 +56,6 @@ init([]) ->
           intensity => 1,
           period => 5},
 
-    Acceptor =
-        #{id => hss_acceptor,
-          start => {hss_acceptor, start_link, []},
-          restart => permanent,
-          shutdown => 5000,
-          type => worker,
-          modules => [hss_acceptor]},
-
     Connector =
         #{id => hss_connection,
           start => {hss_connection, start_link, []},
@@ -80,4 +72,4 @@ init([]) ->
           type => supervisor,
           modules => [hss_task_sup, hss_task]},
 
-    {ok, {SupFlags, [Acceptor, Connector, TaskControllerSup]}}.
+    {ok, {SupFlags, [Connector, TaskControllerSup]}}.
