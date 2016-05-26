@@ -1,4 +1,6 @@
 -module(hss_utils).
+-include("hss_internal.hrl").
+
 -export([default_timeout/0,
          default_ssh_timeout/0,
          default_conn_timeout/0,
@@ -7,7 +9,8 @@
          configure_user_dir/1,
          hss_data_directory/0,
          uuid4/0,
-         uuid4str/0]).
+         uuid4str/0,
+         log/2]).
 
 
 default_timeout() ->
@@ -65,3 +68,8 @@ uuid4() ->
 
 uuid4str() ->
     binary:bin_to_list(uuid4()).
+
+
+log(#mstate{task_id=TaskID, target_machine=#machine{host=Host, port=Port}},
+    Message) ->
+    io_lib:format("[T:~s][M:~s:~p] ", [TaskID, Host, Port]) ++ Message.
