@@ -2,17 +2,22 @@
 -behaviour(supervisor).
 -define(SERVER, ?MODULE).
 
--export([start_link/0]).
--export([init/1]).
+-export([start_link/0,
+         execute/2,
+         init/1]).
 
 
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
+execute(Target, Script) ->
+    Task = hss_task:new(Target, Script),
+    {ok, TaskPID} = supervisor:start_child(?SERVER, [Task]),
+    {ok, Task, TaskPID}.
 
 init([]) ->
 
-    SupFlags = #{strategy => one_for_one,
+    SupFlags = #{strategy => simple_one_for_one,
                  intensity => 1,
                  period => 5},
 
@@ -24,19 +29,4 @@ init([]) ->
                 modules => [hss_task_manager_sup,
                             hss_task_manager]},
 
-    MachineManagerSup = #{id => hss_machine_manager_sup,
-                          start => {hss_machine_manager_sup, start_link, []},
-                          restart => permanent,
-                          shutdown => 5000,
-                          type => supervisor,
-                          modules => [hss_machine_manager_sup,
-                                      hss_machine_manager]},
-
-    ChannelSup = #{id => hss_channel_sup,
-                   start => {hss_channel_sup, start_link, []},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => supervisor,
-                   modules => [hss_channel_sup, hss_channel]},
-
-    {ok, {SupFlags, [TaskManagerSup, MachineManagerSup, ChannelSup]}}.
+    {ok, {SupFlags, [TaskManagerSup]}}.

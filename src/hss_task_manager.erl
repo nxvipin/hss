@@ -3,22 +3,16 @@
 -include("hss.hrl").
 -define(SERVER, ?MODULE).
 
--export([execute/2, start_link/1]).
+-export([start_link/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
 -record(task_state, {task_id :: task_id(),
                      task :: task()}).
 
-
 %% -----------------------------------------------------------------------------
 %% Public API
 %% -----------------------------------------------------------------------------
-
--spec execute(target(), script()) -> {ok, task()} | {error, any()}.
-execute(Target, Script) ->
-    Task = hss_task:new(Target, Script),
-    supervisor:start_child(hss_task_manager_sup, [Task]).
 
 start_link(Task) ->
     {ok, TaskPID} = gen_server:start_link(hss_task_manager, [Task], []),

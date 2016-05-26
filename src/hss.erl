@@ -7,9 +7,9 @@ start() ->
 
 -spec run(target(), script()) -> {ok, task()}.
 run(Target, Script) ->
-	hss_task_manager:execute(Target, Script).
+    hss_task_controller_sup:execute(Target, Script).
 
 -spec run(machine(), credential(), script()) -> {ok, task()}.
 run(Machine, Credential, Script) ->
-	Target = hss_target:new([Machine], Credential),
-	run(Target, Script).
+    Target = hss_target:new([Machine], Credential),
+    run(Target, Script).
