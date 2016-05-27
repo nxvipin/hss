@@ -30,11 +30,11 @@ init([]) ->
                  period => 5},
 
     TaskManagerSup = #{id => hss_task_manager_sup,
-                start => {hss_task_manager_sup, start_link, []},
-                restart => permanent,
-                shutdown => 5000,
-                type => supervisor,
-                modules => [hss_task_manager_sup,
-                            hss_task_manager]},
+					   start => {hss_task_manager_sup, start_link, []},
+					   restart => permanent,
+					   shutdown => 5000,
+					   type => supervisor,
+					   modules => [hss_task_manager_sup,
+								   hss_task_manager]},
 
     {ok, {SupFlags, [TaskManagerSup]}}.

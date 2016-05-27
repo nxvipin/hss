@@ -1,5 +1,6 @@
 -include("hss.hrl").
 
+%% Machine State
 -record(mstate, {task_id :: task_id(),
                  task :: task(),
                  target_machine :: machine(),
@@ -7,7 +8,6 @@
                  connection_pid :: connection_pid(),
                  channel_id :: channel_id(),
                  channel_pid :: channel_pid()}).
-
 
 -define(DEBUG(Context, Message),
 		lager:debug(hss_utils:log(Context, Message))).
