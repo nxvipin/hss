@@ -17,8 +17,6 @@
          terminate/2,
          code_change/3]).
 
-
-
 %% -----------------------------------------------------------------------------
 %% Public API
 %% -----------------------------------------------------------------------------
@@ -57,7 +55,7 @@ handle_cast({handle_machine_start, TaskID},
             #mstate{task_id=TaskID,
                     target_machine=Machine,
                     credential=Credential}=MState) ->
-    ?DEBUG(MState, "Machine Start Request"),
+    ?INFO(MState, "Machine Start Request"),
     ConnRes = create_ssh_connection(Machine, Credential),
     handle_ssh_connection(self(), ConnRes),
     {noreply, MState};
@@ -67,7 +65,7 @@ handle_cast({handle_machine_start, _TaskID}, MState) ->
     {noreply, MState};
 
 handle_cast({handle_ssh_connection, {ok, ConnRef}}, MState) ->
-    ?DEBUG(MState, "SSH connection created"),
+    ?INFO(MState, "SSH connection created: ~p", [ConnRef]),
     ChannelRes = create_ssh_channel(ConnRef),
     handle_ssh_channel(self(), ChannelRes),
     {noreply, MState#mstate{connection_pid=ConnRef}};
@@ -80,7 +78,7 @@ handle_cast({handle_ssh_connection, {error, Reason}}, MState) ->
 handle_cast({handle_ssh_channel, {ok, ChannelID}},
             #mstate{connection_pid=ConnPID,
                     task=#task{script=Script}}=MState) when is_pid(ConnPID) ->
-    ?INFO(MState, "SSH channel created"),
+    ?INFO(MState, "SSH channel created: ~p", [ChannelID]),
     {ok, State}
         = ssh_channel:init([[{channel_cb, ?MODULE},
                              {init_args, [MState#mstate{channel_id=ChannelID}]},
@@ -100,7 +98,7 @@ handle_cast({handle_ssh_channel, {error, Reason}}, MState) ->
 
 handle_cast({handle_ssh_exec, Script, Timeout},
             #mstate{connection_pid=ConnPID, channel_id=ChannelID}=MState) ->
-    ?DEBUG(MState, "Starting Script Run"),
+    ?INFO(MState, "Starting Script Run"),
     ssh_connection:exec(ConnPID, ChannelID, Script, Timeout),
     {noreply, MState};
 
@@ -120,13 +118,13 @@ handle_ssh_msg({ssh_cm, ConnectionPID, {data, ChannelID, _DType, _Data}},
 handle_ssh_msg({ssh_cm, ConnectionPID, {eof, ChannelID}},
                #mstate{connection_pid=ConnectionPID,
                        channel_id=ChannelID}=MState) ->
-    ?DEBUG(MState, "EOF Received"),
+    ?INFO(MState, "EOF Received"),
     {ok, MState};
 
 handle_ssh_msg({ssh_cm, ConnectionPID, {exit_status, ChannelID, Status}},
                #mstate{connection_pid=ConnectionPID,
                        channel_id=ChannelID}=MState) ->
-    ?DEBUG(MState, "Exit Status Received. Code: ~p", [Status]),
+    ?INFO(MState, "Exit Status Received. Code: ~p", [Status]),
     {ok, MState};
 
 handle_ssh_msg({ssh_cm, ConnectionPID,
