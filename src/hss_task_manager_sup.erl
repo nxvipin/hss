@@ -24,11 +24,4 @@ init([Task]) ->
                           modules => [hss_machine_manager_sup,
                                       hss_machine_manager]},
 
-    ChannelSup = #{id => hss_channel_sup,
-                   start => {hss_channel_sup, start_link, []},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => supervisor,
-                   modules => [hss_channel_sup, hss_channel]},
-
-    {ok, {SupFlags, [MachineManagerSup, ChannelSup]}}.
+    {ok, {SupFlags, [MachineManagerSup]}}.
