@@ -210,6 +210,3 @@ connection_cache_add(Host, Username, ConnRef) ->
 create_ssh_channel(ConnectionPID) ->
     %% TODO: Channel timeout must be configurable
     ssh_connection:session_channel(ConnectionPID, 10000).
-
-create_ssh_channel_process(ConnectionPID, ChannelID, Machine, Task) ->
-    hss_channel:create(ConnectionPID, ChannelID, Machine, Task).
