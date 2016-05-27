@@ -5,10 +5,8 @@
 -export([start_link/1,
          init/1]).
 
-
 start_link(Task) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Task]).
-
+    supervisor:start_link(?MODULE, [Task]).
 
 init([Task]) ->
 
