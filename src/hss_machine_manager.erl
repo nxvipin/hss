@@ -133,7 +133,11 @@ handle_ssh_msg({ssh_cm, ConnectionPID,
                        channel_id=ChannelID}=MState) ->
     ?DEBUG(MState, "Exit Singal Received. Signal: ~p, Error: ~p, Lang: ~p",
            [Signal, Error, Lang]),
-    {ok, MState}.
+    {ok, MState};
+
+handle_ssh_msg(Msg, MState) ->
+	?INFO("Unknown SSH Message: ~p", Msg),
+	{ok, MState}.
 
 terminate(_Reason, _MState) ->
     ok.
