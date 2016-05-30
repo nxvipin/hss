@@ -62,7 +62,7 @@ handle_cast({handle_machine_start, TaskID},
 
 handle_cast({handle_machine_start, _TaskID}, MState) ->
     ?ERROR(MState, "Machine Start Request, Task ID and Task does not match"),
-    {noreply, MState};
+    {stop, normal};
 
 handle_cast({handle_ssh_connection, {ok, ConnRef}}, MState) ->
     ?INFO(MState, "SSH connection created: ~p", [ConnRef]),
@@ -73,7 +73,7 @@ handle_cast({handle_ssh_connection, {ok, ConnRef}}, MState) ->
 handle_cast({handle_ssh_connection, {error, Reason}}, MState) ->
     %% TODO: Retry logic sits here
     ?ERROR(MState, "SSH connection failed. Reason: ~p", [Reason]),
-    {noreply, MState};
+    {stop, normal, MState};
 
 handle_cast({handle_ssh_channel, {ok, ChannelID}},
             #mstate{connection_pid=ConnPID,
@@ -89,16 +89,16 @@ handle_cast({handle_ssh_channel, {ok, ChannelID}},
 
 handle_cast({handle_ssh_channel, {ok, _ChannelID}}, MState) ->
     ?ERROR(MState, "Invalid State; Channel created but connection not found"),
-    {noreply, MState};
+    {stop, normal, MState};
 
 handle_cast({handle_ssh_channel, {error, Reason}}, MState) ->
     %% TODO: Retry logic sits here
     ?ERROR(MState, "SSH channel creation failed. Reason: ~p", [Reason]),
-    {noreply, MState};
+    {stop, normal, MState};
 
 handle_cast({handle_ssh_exec, Script, Timeout},
             #mstate{connection_pid=ConnPID, channel_id=ChannelID}=MState) ->
-    ?INFO(MState, "Starting Script Run"),
+    ?INFO(MState, "Starting Script Run: ~p", [self()]),
     ssh_connection:exec(ConnPID, ChannelID, Script, Timeout),
     {noreply, MState};
 
