@@ -20,8 +20,9 @@ init([Task]) ->
     {ok, {SupFlags, Machines}}.
 
 
-machine_spec(#machine{}=Machine, #task{}=Task) ->
-    #{id => hss_task_sup,
+machine_spec(#machine{host=Host, port=Port}=Machine,
+			 #task{task_id=TaskID}=Task) ->
+    #{id => {hss_machine_sup, TaskID, Host, Port},
       start => {hss_machine_manager, start_link, [Machine, Task]},
       restart => temporary,
       shutdown => 5000,
