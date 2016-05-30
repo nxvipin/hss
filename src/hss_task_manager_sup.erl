@@ -1,5 +1,6 @@
 -module(hss_task_manager_sup).
 -behaviour(supervisor).
+-include("hss.hrl").
 -define(SERVER, ?MODULE).
 
 -export([start_link/1,
@@ -22,4 +23,11 @@ init([Task]) ->
                           modules => [hss_machine_manager_sup,
                                       hss_machine_manager]},
 
-    {ok, {SupFlags, [MachineManagerSup]}}.
+	TaskManager = #{id => hss_task_manager,
+					start => {hss_task_manager, start_link, [self(), Task]},
+					restart => permanent,
+					shutdown => 5000,
+					type => worker,
+					modules => [hss_task_manager]},
+
+    {ok, {SupFlags, [MachineManagerSup, TaskManager]}}.
