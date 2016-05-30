@@ -5,8 +5,7 @@
 
 -define(SERVER, ?MODULE).
 
--export([create/2,
-         start_link/2,
+-export([start_link/2,
          start_link/1]).
 
 -export([init/1,
@@ -21,18 +20,12 @@
 %% Public API
 %% -----------------------------------------------------------------------------
 
-
--spec create(machine(), task()) -> {ok, task()} | {error, any()}.
-create(Machine, Task) ->
-    supervisor:start_child(hss_machine_manager_sup, [Machine, Task]).
-
 start_link(Machine, Task) ->
     {ok, _TaskPID} = gen_server:start_link(hss_machine_manager,
                                            [{machine, Machine}, {task, Task}], []).
 start_link(MState) ->
     {ok, _TaskPID} = gen_server:start_link(hss_machine_manager,
                                            [MState], []).
-
 
 %% -----------------------------------------------------------------------------
 %% Gen server callback
@@ -161,10 +154,6 @@ handle_ssh_channel(MachinePID, ChannelRes) ->
 
 handle_ssh_exec(MachinePID, Script) ->
     ssh_channel:cast(MachinePID, {handle_ssh_exec, Script, infinity}).
-
-p(#mstate{task_id = TaskID, target_machine = #machine{host = Host,
-                                                      port= Port}}) ->
-    io_lib:format("[T:~s][M:~s:~p]", [TaskID, Host, Port]).
 
 initialize_state(Machine,
                  #task{task_id = TaskID,
